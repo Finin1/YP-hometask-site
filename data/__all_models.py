@@ -1,3 +1,4 @@
 from . import users
-from . import template
-from . import range
+from . import week_days
+from . import forms
+from . import homework
