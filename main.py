@@ -35,23 +35,30 @@ def load_user(user_id):
 @app.route('/main')
 def main():
     is_logged = False
-    username = None
-    form = flask.session.get('form')
+    username = None   
     weekdays = None
+    
     try:
+        form = flask.session.get('form')
         if flask.session['login_key']:
             is_logged = True
             username = flask.session.get("username")
     except KeyError:
         flask.session['login_key'] = None
         flask.session.permanent = True
+    
     if form:
-        curr_first_weekday = datetime.date.today()
-        while curr_first_weekday.weekday() != 0:
-            curr_first_weekday -= datetime.timedelta(days=1)
+        try:
+            curr_first_weekday = datetime.date.fromisoformat(flask.session['current_first_week_day'])
+        except KeyError:
+            curr_first_weekday = datetime.date.today()
+            while curr_first_weekday.weekday() != 0:
+                curr_first_weekday -= datetime.timedelta(days=1)
+            flask.session['current_first_week_day'] = datetime.date.isoformat(curr_first_weekday)
         curr_day = curr_first_weekday
         weekdays = []
-        for i in range(0, 6):
+        for i in range(6):
+            print(i)
             s_curr_day = str(curr_day)
             code_for_ht = s_curr_day[8:] + s_curr_day[5:7] + s_curr_day[0:4] + str(form)
             print(code_for_ht)
@@ -74,7 +81,9 @@ def main():
             weekdays.append([wd_schedule, homework])
             curr_day += datetime.timedelta(days=1)
         print(weekdays)
-    return flask.render_template('main.html', is_logged=is_logged, username=username, weekdays=weekdays, zip=zip)
+    return flask.render_template('main.html', is_logged=is_logged,
+                                  username=username, weekdays=weekdays, zip=zip,
+                                  title='Дневник')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -103,6 +112,16 @@ def logout():
     flask.session['username'] = None 
     flask.session['form'] = None
     logout_user()
+    return flask.redirect('/')
+
+@app.route('/next')
+def next_pg():
+    flask.session['current_first_week_day'] = datetime.date.isoformat(datetime.date.fromisoformat(flask.session['current_first_week_day']) + datetime.timedelta(days=7))
+    return flask.redirect('/')
+
+@app.route('/prev')
+def prev_pg():
+    flask.session['current_first_week_day'] = datetime.date.isoformat(datetime.date.fromisoformat(flask.session['current_first_week_day']) - datetime.timedelta(days=7))
     return flask.redirect('/')
 
 if __name__ == '__main__':
