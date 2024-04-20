@@ -1,7 +1,5 @@
 import flask
-import homework_resources
-import form_resources
-import weekday_resources
+from api import homework_resources, form_resources, weekday_resources, user_resources
 from flask_restful import Api
 from data import db_session
 
@@ -17,6 +15,8 @@ api.add_resource(form_resources.FormResource, "/api/forms/<int:form_id>")
 api.add_resource(form_resources.AllFormsResource, "/api/forms")
 api.add_resource(weekday_resources.AllWeekDaysResource, "/api/weekdays")
 api.add_resource(weekday_resources.WeekDayResource, "/api/weekdays/<int:week_day_id>")
+api.add_resource(user_resources.UserResource, '/api/users/<int:user_id>')
+api.add_resource(user_resources.AllUsersResource, '/api/users')
 
 if __name__ == "__main__":
     app.run("127.0.0.1", port=5001)

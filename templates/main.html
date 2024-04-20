@@ -22,14 +22,36 @@
                 <a class="nav-link" href="#">О школе</a>
               </li>
             </ul>
-            <button class="btn btn-outline-secondary d-flex me-1" href="#">Регистрация</button>
-            <button class="btn btn-secondary d-flex" href="#">Вход</button>
+            <!-- <button class="btn btn-outline-secondary d-flex me-1" href="#">Регистрация</button> -->
+            {% if not is_logged %}
+              <a class="btn btn-secondary d-flex" href="/login" role="button">Вход</a>
+            {% else %}
+              <p class="nav-item mb-2 mb-lg-0 me-2">{{ username }}</p>
+              <a class="btn btn-secondary d-flex" href="/logout">Выйти</a>
+            {% endif %}
           </div>
         </div>
     </nav>
     
     {% if is_logged %}
-        <h2>U are logged in</h2>
+        {% for shedule, hometask in weekdays %}
+          <table>
+            <tr>
+              <th>
+                Предмет
+              </th>
+              <th>
+                Домашнее задание
+              </th>
+            </tr>
+            {% for item_shed, item_ht, i in zip(shedule.items(), hometask.items(), range(1, 8)) %}
+              <tr>
+                <td>{{ i }}. {{ item_shed[1] }} </td>
+                <td>{{ item_ht[1] }}</td>
+              </tr>
+            {% endfor %}
+          </table>
+        {% endfor %}
     {% else %}
         <h2>U are not logged in</h2>
     {% endif %}

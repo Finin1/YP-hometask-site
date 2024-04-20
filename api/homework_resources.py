@@ -6,13 +6,15 @@ from data.homework import Homework
 
 def abort_if_day_not_found(code):
     session = db_session.create_session()
-    date = code[0:2] + "." + code[2:4] + "." + code[4:6]
-    form = code[6:]
+    date = code[0:2] + "." + code[2:4] + "." + code[4:8]
+    form = code[8:]
+    print(date, form)
     homework_id = (
-        session.query(Homework.id)
+        session.query(Homework)
         .filter(Homework.date == date, Homework.form_id == form)
         .first()
     )
+    session.close()
     if not homework_id:
         abort(404, message=f"Homework on {date} for {form} form not found")
 
@@ -20,8 +22,8 @@ def abort_if_day_not_found(code):
 class HomeworkResource(Resource):
     def get(self, code, subject):
         abort_if_day_not_found(code)
-        date = code[0:2] + "." + code[2:4] + "." + code[4:6]
-        form = code[6:]
+        date = code[0:2] + "." + code[2:4] + "." + code[4:8]
+        form = code[8:]
         session = db_session.create_session()
         homework_id = (
             session.query(Homework.id)
@@ -29,6 +31,7 @@ class HomeworkResource(Resource):
             .first()
         )
         homework = session.query(Homework).get(homework_id[0])
+        session.close()
         return jsonify({"homework": homework.to_dict(only=(f"subject{subject}",))})
 
     def delete(self, code, subject):
@@ -68,6 +71,7 @@ class HomeworkResource(Resource):
         ):
             session.delete(homework)
             session.commit()
+        session.close()
         return jsonify({"success": "OK"})
 
     def post(self, code, subject):
@@ -125,14 +129,15 @@ class HomeworkResource(Resource):
                     homework.subject7 = args["content"]
             homework.edited_by = args["user_id"]
             session.commit()
+            session.close()
             return jsonify({"id": homework.id})
 
 
 class AllHometaskForDayResource(Resource):
     def get(self, code):
         abort_if_day_not_found(code)
-        date = code[0:2] + "." + code[2:4] + "." + code[4:6]
-        form = code[6:]
+        date = code[0:2] + "." + code[2:4] + "." + code[4:8]
+        form = code[8:]
         session = db_session.create_session()
         homework_id = (
             session.query(Homework.id)
@@ -140,6 +145,7 @@ class AllHometaskForDayResource(Resource):
             .first()
         )
         homework = session.query(Homework).get(homework_id[0])
+        session.close()
         return jsonify(
             {
                 "homework": homework.to_dict(

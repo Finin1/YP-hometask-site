@@ -19,3 +19,22 @@ class User(SqlAlchemyBase, UserMixin):
     form_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('forms.id') )
     forms = orm.relationship('Form', foreign_keys=form_id)
     homework = orm.relationship('Homework', back_populates='users')
+
+    def to_dict(self, only=()) -> dict:
+        usr_dict = {'id': self.id, 'surname': self.surname, 'name': self.name, 
+                   'nickname': self.nickname, 'hashed_password': self.hashed_password, 'permition_level': self.permition_level, 
+                   'modified_date': self.modified_date, 'form_id': self.form_id}
+        
+        if only:
+            filtered_dict = {}
+            for selected in only:
+                filtered_dict[selected] = usr_dict[selected]
+            return filtered_dict
+        else:
+            return usr_dict
+        
+    def check_password(self, password):
+        if self.hashed_password == password:
+            return True
+        else:
+            return False

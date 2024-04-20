@@ -7,6 +7,7 @@ from data.forms import Form
 def abort_if_form_not_found(form_id):
     session = db_session.create_session()
     form = session.query(Form).get(form_id)
+    session.close()
     if not form:
         abort(404, message=f"Form {form_id} not found")
 
@@ -16,6 +17,7 @@ class FormResource(Resource):
         abort_if_form_not_found(form_id)
         session = db_session.create_session()
         form = session.query(Form).get(form_id)
+        session.close()
         return jsonify({"form": form.to_dict(only=())})
 
     def delete(self, form_id):
@@ -29,6 +31,7 @@ class FormResource(Resource):
         form = session.query(Form).get(form_id)
         session.delete(form)
         session.commit()
+        session.close()
         return jsonify({"success": "OK"})
 
 
@@ -40,6 +43,7 @@ class AllFormsResource(Resource):
         for form in all_forms:
             dict_form = form.to_dict()
             dict_for_json["forms"].append(dict_form)
+        session.close()
         return jsonify(dict_for_json)
 
     def post(self):
@@ -63,4 +67,5 @@ class AllFormsResource(Resource):
         new_form.week_day6 = args["week_day6"]
         session.add(new_form)
         session.commit()
+        session.close()
         return jsonify({"id": new_form.id})

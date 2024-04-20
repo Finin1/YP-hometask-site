@@ -7,6 +7,7 @@ from data.week_days import WeekDay
 def abort_if_weekday_not_found(week_day_id):
     session = db_session.create_session()
     week_day = session.query(WeekDay).get(week_day_id)
+    session.close()
     if not week_day:
         abort(404, message=f"Form {week_day_id} not found")
 
@@ -16,7 +17,8 @@ class WeekDayResource(Resource):
         abort_if_weekday_not_found(week_day_id)
         session = db_session.create_session()
         week_day = session.query(WeekDay).get(week_day_id)
-        return jsonify({"form": week_day.to_dict(only=())})
+        session.close()
+        return jsonify({"weekday": week_day.to_dict(only=('subject1', 'subject2', 'subject3', 'subject4', 'subject5', 'subject6', 'subject7'))})
 
     def delete(self, week_day_id):
         parser = reqparse.RequestParser()
@@ -29,6 +31,7 @@ class WeekDayResource(Resource):
         week_day = session.query(WeekDay).get(week_day_id)
         session.delete(week_day)
         session.commit()
+        session.close()
         return jsonify({"success": "OK"})
 
 
@@ -40,6 +43,7 @@ class AllWeekDaysResource(Resource):
         for week_day in all_week_days:
             dict_form = week_day.to_dict()
             dict_for_json["forms"].append(dict_form)
+        session.close()
         return jsonify(dict_for_json)
 
     def post(self):
@@ -63,4 +67,5 @@ class AllWeekDaysResource(Resource):
         new_week_day.subject7 = args["subject7"]
         session.add(new_week_day)
         session.commit()
+        session.close()
         return jsonify({"id": new_week_day.id})
