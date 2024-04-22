@@ -6,18 +6,22 @@
 {% block content%}
     {% if is_logged %}
     <div class="container-fluid">
-        {% for _ in range(3) %}
+        {% for r in range(3) %}
         <div class="row">
             {% for index in (0, 1) %}
             <div class="col">
-                <table class="d-inline">
-                    <tr>
-                    <th>
-                        Предмет
-                    </th>
-                    <th>
-                        Домашнее задание
-                    </th>
+                <table class="table table-warning table-bordered table-striped {% if r == 0%} mt-2 {% endif %} mb-2">
+                    <tr class="table-dark">
+                        {% set day_index = 6 - len(weekdays) + index %}
+                        <th colspan="2" class="text-center"> {{ week[day_index] }} {{ dates[day_index] }} </th>
+                    </tr>
+                    <tr class="table-dark">
+                        <th>
+                            Предмет
+                        </th>
+                        <th>
+                            Домашнее задание
+                        </th>
                     </tr>
                     {% for item_shed, item_ht, i in zip(weekdays[index][0].items(), weekdays[index][1].items(), range(1, 8)) %}
                     <tr>
@@ -34,7 +38,13 @@
         {% set temp = weekdays.pop(0) %}
         {% endfor %}
     </div>
+    <div class="justify-content-center d-flex mb-1">
+        <a class="btn btn-dark btn-sm me-1" style="width: 5%;" href="/prev" role="button"><</a>
+        <a class="btn btn-dark btn-sm ms-1" style="width: 5%;" href="/next" role="button">></a>
+    </div>
     {% else %}
-    <h2>U are not logged in</h2>
+    <div class="d-flex justify-content-center">
+        <h2>Для продолжения необходим вход</h2>
+    </div>
     {% endif %} 
 {% endblock %}

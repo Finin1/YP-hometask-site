@@ -37,6 +37,7 @@ def main():
     is_logged = False
     username = None   
     weekdays = None
+    dates = None
     
     try:
         form = flask.session.get('form')
@@ -57,14 +58,15 @@ def main():
             flask.session['current_first_week_day'] = datetime.date.isoformat(curr_first_weekday)
         curr_day = curr_first_weekday
         weekdays = []
+        dates = []
         for i in range(6):
             print(i)
             s_curr_day = str(curr_day)
             code_for_ht = s_curr_day[8:] + s_curr_day[5:7] + s_curr_day[0:4] + str(form)
-            print(code_for_ht)
+            dates.append(s_curr_day[8:] + "." + s_curr_day[5:7])
             homework_rt = request('get', f'http://127.0.0.1:5001/api/homeworks/{code_for_ht}')
             if homework_rt.status_code == 404:
-                break
+                homework = {'subject1': '', 'subject2': '', 'subject3': '', 'subject4': '', 'subject5': '', 'subject6': '', 'subject7': ''}
             else:
                 homework = homework_rt.json()['homework']
                 print(homework)
@@ -83,7 +85,8 @@ def main():
         print(weekdays)
     return flask.render_template('main.html', is_logged=is_logged,
                                   username=username, weekdays=weekdays, zip=zip,
-                                  title='Дневник')
+                                  title='Дневник', len=len, dates=dates,
+                                  week=['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
