@@ -42,12 +42,15 @@ def main():
     username = None   
     weekdays = None
     dates = None
-    
+    can_edit = False
+
     try:
         form = flask.session.get('form')
         if flask.session['login_key']:
             is_logged = True
             username = flask.session.get("username")
+        else:
+            flask.redirect('/login')
     except KeyError:
         flask.session['login_key'] = None
         flask.session.permanent = True
@@ -150,6 +153,8 @@ def logout():
     flask.session['login_key'] = None
     flask.session['username'] = None 
     flask.session['form'] = None
+    flask.session['user_id'] = None
+    flask.session['permition_lvl'] = None
     logout_user()
     return flask.redirect('/')
 
