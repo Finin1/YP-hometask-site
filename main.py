@@ -17,6 +17,10 @@ class LoginForm(FlaskForm):
     remember_me = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
+class EditForm(FlaskForm):
+    text = StringField('Домашняя работа')
+    submit = SubmitField('Сохранить')
+
 
 app = flask.Flask(__name__)
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
@@ -47,6 +51,7 @@ def main():
     except KeyError:
         flask.session['login_key'] = None
         flask.session.permanent = True
+        flask.redirect('/login')    
     
     if form:
         try:
@@ -63,30 +68,59 @@ def main():
             print(i)
             s_curr_day = str(curr_day)
             code_for_ht = s_curr_day[8:] + s_curr_day[5:7] + s_curr_day[0:4] + str(form)
-            dates.append(s_curr_day[8:] + "." + s_curr_day[5:7])
-            homework_rt = request('get', f'http://127.0.0.1:5001/api/homeworks/{code_for_ht}')
-            if homework_rt.status_code == 404:
+            dates.append([s_curr_day[8:], s_curr_day[5:7], s_curr_day[0:4]])
+            homework_rs = request('get', f'http://127.0.0.1:5001/api/homeworks/{code_for_ht}')
+            if homework_rs.status_code == 404:
                 homework = {'subject1': '', 'subject2': '', 'subject3': '', 'subject4': '', 'subject5': '', 'subject6': '', 'subject7': ''}
             else:
-                homework = homework_rt.json()['homework']
+                homework = homework_rs.json()['homework']
                 print(homework)
-            wd_id_rt = request('get', f'http://127.0.0.1:5001/api/forms/{form}')
-            if wd_id_rt.status_code == 404:
+            wd_id_rs = request('get', f'http://127.0.0.1:5001/api/forms/{form}')
+            if wd_id_rs.status_code == 404:
                 break
             else:
-                wd_id = wd_id_rt.json()['form'][f'week_day{i + 1}']
-            wd_schedule_rt = request('get', f'http://127.0.0.1:5001/api/weekdays/{wd_id}')
-            if wd_schedule_rt.status_code == 404:
+                wd_id = wd_id_rs.json()['form'][f'week_day{i + 1}']
+            wd_schedule_rs = request('get', f'http://127.0.0.1:5001/api/weekdays/{wd_id}')
+            if wd_schedule_rs.status_code == 404:
                 break
             else:
-                wd_schedule = wd_schedule_rt.json()['weekday']
+                wd_schedule = wd_schedule_rs.json()['weekday']
             weekdays.append([wd_schedule, homework])
             curr_day += datetime.timedelta(days=1)
         print(weekdays)
+
+        if flask.session.get('permition_lvl') == 1:
+            can_edit = True
+        else:
+            can_edit = False
+
     return flask.render_template('main.html', is_logged=is_logged,
                                   username=username, weekdays=weekdays, zip=zip,
-                                  title='Дневник', len=len, dates=dates,
+                                  title='Дневник', len=len, dates=dates, can_edit=can_edit,
                                   week=['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'])
+
+@app.route('/edit/<date>/<int:subject>', methods=['GET', 'POST'])
+def edit(date, subject):
+    if flask.session.get('permition_lvl') == 1:
+        form = EditForm()
+        first_time = False
+        fm_id = str(flask.session.get('form'))
+        ht_response = request('get', f'http://127.0.0.1:5001/api/homeworks/{date + fm_id}/{subject}')
+        if ht_response.status_code == 404:
+            pass
+        elif first_time:
+            first_time = False
+            form.text.data = ht_response.json()['homework'][f'subject{subject}']
+        if form.validate_on_submit():
+            print(form.text.data)
+            edit_request = request('post', f'http://127.0.0.1:5001/api/homeworks/{date + fm_id}/{subject}', 
+                                   json={'content': form.text.data, 'user_id': flask.session.get('user_id')})
+            print(edit_request)
+            return flask.redirect('/')
+        return flask.render_template('edit.html', title='Редактирование д/з', form=form, date=date, is_logged=True,
+                                     username=flask.session.get("username"))
+    else:
+        return flask.redirect('/')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -101,6 +135,8 @@ def login():
             flask.session['login_key'] = 1236547890
             flask.session['username'] = user.name + ' ' + user.surname 
             flask.session['form'] = user.form_id
+            flask.session['user_id'] = user.id
+            flask.session['permition_lvl'] = user.permition_level
             return flask.redirect("/")
         return flask.render_template('login.html',
                                message="Неправильный логин или пароль",
@@ -126,6 +162,7 @@ def next_pg():
 def prev_pg():
     flask.session['current_first_week_day'] = datetime.date.isoformat(datetime.date.fromisoformat(flask.session['current_first_week_day']) - datetime.timedelta(days=7))
     return flask.redirect('/')
+
 
 if __name__ == '__main__':
     app.run('127.0.0.1', 5000, debug=True)

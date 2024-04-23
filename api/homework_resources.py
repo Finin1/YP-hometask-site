@@ -37,8 +37,8 @@ class HomeworkResource(Resource):
     def delete(self, code, subject):
         abort_if_day_not_found(code)
         session = db_session.create_session()
-        date = code[0:2] + "." + code[2:4] + "." + code[4:6]
-        form = code[6:]
+        date = code[0:2] + "." + code[2:4] + "." + code[4:8]
+        form = code[8:]
         homework_id = (
             session.query(Homework.id)
             .filter(Homework.date == date, Homework.form_id == form)
@@ -79,8 +79,8 @@ class HomeworkResource(Resource):
         parser.add_argument("content", required=True)
         parser.add_argument("user_id", required=True, type=int)
         args = parser.parse_args()
-        date = code[0:2] + "." + code[2:4] + "." + code[4:6]
-        form = code[6:]
+        date = code[0:2] + "." + code[2:4] + "." + code[4:8]
+        form = code[8:]
         session = db_session.create_session()
         homework_id = (
             session.query(Homework.id)
@@ -129,7 +129,6 @@ class HomeworkResource(Resource):
                     homework.subject7 = args["content"]
             homework.edited_by = args["user_id"]
             session.commit()
-            session.close()
             return jsonify({"id": homework.id})
 
 

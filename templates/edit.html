@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block is_main %} {% endblock %}
+{% block is_about %} {% endblock %}
+
+{% block content%}
+<h2 class="ms-1">Изменение домашней работы на {{ date[0:2] }}.{{ date[2:4] }}</h2>
+<form class="ms-2" action="" method="post">
+    {{ form.hidden_tag() }}
+    {{ form.csrf_token }}
+    <p>
+        {{ form.text.label(class="form-label") }}<br>
+        {{ form.text(class="form-control w-50", type="text") }}<br>
+    </p>
+    <p>{{ form.submit(type="submit", class="btn btn-dark") }} <a class="btn btn-outline-dark" href="/main"> Отмена </a></p>
+    <div>{{ message }}</div>
+</form>
+{% endblock %}

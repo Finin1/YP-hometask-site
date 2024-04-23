@@ -10,10 +10,10 @@
         <div class="row">
             {% for index in (0, 1) %}
             <div class="col">
-                <table class="table table-warning table-bordered table-striped {% if r == 0%} mt-2 {% endif %} mb-2">
+                <table class="table table-warning table-bordered {% if r == 0%} mt-2 {% endif %} mb-2">
                     <tr class="table-dark">
                         {% set day_index = 6 - len(weekdays) + index %}
-                        <th colspan="2" class="text-center"> {{ week[day_index] }} {{ dates[day_index] }} </th>
+                        <th colspan="2" class="text-center"> {{ week[day_index] }} {{ dates[day_index][0] }}.{{ dates[day_index][1] }} </th>
                     </tr>
                     <tr class="table-dark">
                         <th>
@@ -25,8 +25,23 @@
                     </tr>
                     {% for item_shed, item_ht, i in zip(weekdays[index][0].items(), weekdays[index][1].items(), range(1, 8)) %}
                     <tr>
-                        <td>{{ i }}. {{ item_shed[1] }} </td>
-                        <td>{{ item_ht[1] }}</td>
+                        <th>{{ i }}. {{ item_shed[1] }} </th>
+                        
+                        {% if can_edit and item_ht[1]%}
+                        <td class="editable">
+                            {% set code = dates[day_index][0] + dates[day_index][1] + dates[day_index][2] %}
+                            <a class="list-group-item list-group-item-action" href="/edit/{{ code }}/{{ i }}">{{ item_ht[1] }}</a> 
+                        </td>
+                        {% elif (item_ht[1] == '') and can_edit %}
+                        <td class="editable">
+                            {% set code = dates[day_index][0] + dates[day_index][1] + dates[day_index][2] %}
+                            <a class="list-group-item list-group-item-action" href="/edit/{{ code }}/{{ i }}"> - </a> 
+                        </td>
+                        {% else %}
+                        <td>
+                            {{ item_ht[1] }}
+                        </td>
+                        {% endif %}
                     </tr>
 
                     {% endfor %}        
